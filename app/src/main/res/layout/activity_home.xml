@@ -4,49 +4,64 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".HomeActivity">
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:orientation="vertical"
-        android:weightSum="100"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+    tools:context=".activity.HomeActivity">
+
 
         <androidx.camera.view.PreviewView
             android:id="@+id/previewView"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="90" />
+            android:layout_height="match_parent"
+            android:scaleType="fitStart"
+            app:layout_constraintTop_toBottomOf="parent"
+            app:layout_constraintBottom_toTopOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            >
+        </androidx.camera.view.PreviewView>
 
-        <RelativeLayout
+    <com.example.ocr.utility.GraphicOverlay
+        android:id="@+id/graphic_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintTop_toTopOf="@id/previewView"
+        app:layout_constraintBottom_toBottomOf="@id/previewView"
+        app:layout_constraintLeft_toLeftOf="@id/previewView"
+        app:layout_constraintRight_toRightOf="@id/previewView"
+        android:layout_alignParentStart="true"/>
+
+    <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
+            android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_weight="10"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            >
 
-            <Button
-                android:id="@+id/bCapture"
-                android:layout_marginStart="10dp"
-                android:layout_width="wrap_content"
+            <TextView
+                android:id="@+id/detectedTextView"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="take picture" />
+                android:layout_weight="80"
+                android:text=""
+                android:textSize="30sp"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                />
 
-            <Button
-                android:id="@+id/bRecord"
-                android:layout_width="wrap_content"
+            <ImageButton
+                android:id="@+id/settingButton"
+                android:layout_width="0dp"
+                android:layout_weight="20"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="10dp"
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentRight="true"
-                android:text="start recording" />
-        </RelativeLayout>
-    </LinearLayout>
+                android:src="@drawable/ic_settings"
+                android:background="@color/transparent"
+                />
+
+        </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
