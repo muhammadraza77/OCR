@@ -46,6 +46,8 @@ dependencies {
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.exifinterface:exifinterface:1.2.0'
 
+    implementation 'com.opencsv:opencsv:4.6'
+    
     // Text features
     implementation 'com.google.android.gms:play-services-mlkit-text-recognition:16.0.0'
 

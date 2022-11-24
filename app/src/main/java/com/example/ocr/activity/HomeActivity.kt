@@ -2,22 +2,37 @@ package com.example.ocr.activity
 
 //import com.google.android.gms.vision.text.TextRecognizer
 //import com.google.mlkit.vision.text.TextRecognition
+
+import android.Manifest
 import android.annotation.SuppressLint
+import android.app.AlertDialog
+import android.content.DialogInterface
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.media.AudioManager
+import android.media.ToneGenerator
+import android.os.Build
 import android.os.Bundle
+import android.view.WindowManager
 import android.widget.ImageButton
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.camera.core.*
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageProxy
+import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
-import com.example.ocr.utility.GraphicOverlay
 import com.example.ocr.R
-import com.example.ocr.utility.TextGraphic
 import com.example.ocr.config.AppDatabase
 import com.example.ocr.config.DatabaseClient
+import com.example.ocr.constant.StorageKey
+import com.example.ocr.utility.GraphicOverlay
+import com.example.ocr.utility.SharedPreferences
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.Text
@@ -38,27 +53,39 @@ class HomeActivity : AppCompatActivity(),  ImageAnalysis.Analyzer {
 
     var db : AppDatabase? = null
     var wordList: Set<String> = emptySet()
+    var isCaseSensitive: Boolean? = null
+    var sharedPreferences: SharedPreferences? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+//        if (checkPermission()) {
+            //main logic or main code
+            bindUIComponents()
 
-        bindUIComponents()
+            db = DatabaseClient.getInstance(applicationContext)!!.appDatabase
+            populateWordsFromDatabase()
 
-        db = DatabaseClient.getInstance(applicationContext)!!.appDatabase
-        populateWordsFromDatabase()
+            sharedPreferences = SharedPreferences(applicationContext)
+            isCaseSensitive = sharedPreferences!!.readValue(StorageKey.IsCaseSensitive)
 
-        setupCameraX()
+            setupCameraX()
 
-        settingButton!!.setOnClickListener {
-            startActivity(Intent(applicationContext, ConfigureActivity::class.java));
-        };
+            settingButton!!.setOnClickListener {
+                startActivity(Intent(applicationContext, ConfigureActivity::class.java));
+            }
+
+//        } else {
+//            requestPermission();
+//        }
 
     }
     override fun onResume() {
         super.onResume()
         populateWordsFromDatabase()
+        isCaseSensitive = sharedPreferences!!.readValue(StorageKey.IsCaseSensitive)
     }
 
     private fun setupCameraX() {
@@ -152,25 +179,68 @@ class HomeActivity : AppCompatActivity(),  ImageAnalysis.Analyzer {
         }
         mGraphicOverlay!!.clear()
 
-        val detectedText = checkTextInDb(texts.text)
-        detectedTextView!!.text = detectedText.toString()
-
-        for (block in blocks) {
-            for (line in block.lines) {
-                val lineText = line.text
-                if(detectedText.isNotEmpty()){
-                    val textGraphic: GraphicOverlay.Graphic =
-                        TextGraphic(
-                            mGraphicOverlay,
-                            line
-                        )
-                    mGraphicOverlay!!.add(textGraphic)
-                }
-
-            }
+        val detectedText = if(isCaseSensitive!!) checkTextInDbCaseSensitive(texts.text) else checkTextInDbCaseFree(texts.text)
+        if(detectedText.isNotEmpty()){
+            detectedTextView!!.text = detectedText.joinToString(separator = "\n")
+            val toneGen1 = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
+            toneGen1.startTone(ToneGenerator.TONE_CDMA_PIP, 150)
         }
     }
 
-    private fun checkTextInDb(text: String):Set<String> = wordList.filter { it in text }.toSet()
+    private fun checkTextInDbCaseFree(text: String):Set<String> = wordList.filter {
+        it.uppercase() in text.uppercase()
+    }.toSet()
 
+    private fun checkTextInDbCaseSensitive(text: String):Set<String> = wordList.filter {
+        it in text
+    }.toSet()
+
+
+    private fun checkPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+    }
+    private fun requestPermission() {
+        ActivityCompat.requestPermissions(
+            this, arrayOf(Manifest.permission.CAMERA),
+            200
+        )
+    }
+    private fun showMessageOKCancel(message: String, okListener: DialogInterface.OnClickListener) {
+        AlertDialog.Builder(this)
+            .setMessage(message)
+            .setPositiveButton("OK", okListener)
+            .setNegativeButton("Cancel", null)
+            .create()
+            .show()
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            200 -> if (grantResults.size > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(applicationContext, "Permission Granted", Toast.LENGTH_SHORT).show()
+
+                // main logic
+            } else {
+                Toast.makeText(applicationContext, "Permission Denied", Toast.LENGTH_SHORT).show()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                        != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        showMessageOKCancel(
+                            "You need to allow access permissions"
+                        ) { dialog, which ->
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                requestPermission()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

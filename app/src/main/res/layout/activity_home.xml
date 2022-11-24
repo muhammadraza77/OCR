@@ -44,9 +44,9 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="80"
                 android:text=""
-                android:textSize="30sp"
+                android:textSize="40sp"
                 android:textAlignment="center"
-                android:textColor="@color/white"
+                android:textColor="@color/yellow"
                 android:textStyle="bold"
                 />
 

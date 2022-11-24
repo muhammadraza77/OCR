@@ -13,6 +13,7 @@
         android:orientation="vertical"
         app:layout_constraintTop_toTopOf="parent">
 
+
         <ListView
             android:id="@+id/textListView"
             android:layout_width="match_parent"
