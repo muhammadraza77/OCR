@@ -1,7 +1,13 @@
 package com.example.ocr.activity
 
+import android.Manifest.permission
 import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.os.Build.VERSION
 import android.os.Bundle
+import android.os.Environment
+import android.provider.Settings
 import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
@@ -9,6 +15,7 @@ import android.widget.*
 import android.widget.AdapterView.OnItemLongClickListener
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
+import androidx.core.app.ActivityCompat
 import com.example.ocr.R
 import com.example.ocr.config.AppDatabase
 import com.example.ocr.config.DatabaseClient
@@ -24,8 +31,9 @@ class ConfigureActivity : AppCompatActivity() {
     private var listView: ListView? = null
     private var editText: EditText? = null
     private var saveButton:Button?=null
-    private var ACTIVITY_CHOOSE_FILE = 100
+    private var ACTIVITY_CHOOSE_FILE = 101
     private var db : AppDatabase? = null
+    private var currentDataFromDb: MutableList<String>? = mutableListOf()
 
     private var itemsAdapter: ArrayAdapter<String>? = null
 
@@ -39,7 +47,7 @@ class ConfigureActivity : AppCompatActivity() {
 
 
         db = DatabaseClient.getInstance(applicationContext)!!.appDatabase
-        val currentDataFromDb = fetchAllWords()
+        currentDataFromDb = fetchAllWords()
 
         setupListview(currentDataFromDb)
 
@@ -74,10 +82,15 @@ class ConfigureActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        println("hello")
         when (item.itemId) {
             R.id.uploadCSV ->{
-                selectCSVFile()
+                selectCSVFile1()
+                return true
+            }
+            R.id.deleteAll ->{
+                deleteAllWord(currentDataFromDb)
+                currentDataFromDb?.clear()
+                itemsAdapter!!.notifyDataSetChanged()
                 return true
             }
         }
@@ -93,9 +106,13 @@ class ConfigureActivity : AppCompatActivity() {
                     try{
                         val fileName = data?.data?.path?.split(":")?.get(1)
                         val reader = CSVReader(FileReader(fileName))
-                        val myEntries: List<*> = reader.readAll()
+                        val myEntries: MutableList<Array<String>> = reader.readAll()
 
-                        println(myEntries)
+                        myEntries.forEach{
+                            insertWord(it[0])
+                            currentDataFromDb!!.add(it[0])
+                        }
+                        itemsAdapter!!.notifyDataSetChanged()
 
                     }catch (ex:Exception){
                         Toast.makeText(this,ex.message,Toast.LENGTH_SHORT).show()
@@ -142,6 +159,11 @@ class ConfigureActivity : AppCompatActivity() {
     ) {
         db!!.textDao()?.delete(currentDataFromDb[pos])
     }
+    private fun deleteAllWord(currentDataFromDb: MutableList<String>?) {
+        currentDataFromDb?.forEachIndexed {index,element->
+            db!!.textDao()?.delete(element)
+        }
+    }
 
     private fun selectCSVFile() {
         val intent = Intent(Intent.ACTION_GET_CONTENT)
@@ -149,11 +171,40 @@ class ConfigureActivity : AppCompatActivity() {
         intent.type = "*/*"
         startActivityForResult(Intent.createChooser(intent, "Open CSV"), ACTIVITY_CHOOSE_FILE)
     }
+    private fun selectCSVFile1(){
+
+        //imp step
+        if (VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (Environment.isExternalStorageManager()) {
+                //choosing csv file
+                val intent = Intent()
+                intent.type = "*/*"
+                intent.putExtra(Intent.EXTRA_AUTO_LAUNCH_SINGLE_CHOICE, true)
+                intent.action = Intent.ACTION_GET_CONTENT
+                startActivityForResult(Intent.createChooser(intent, "Select CSV File "), 101)
+            } else {
+                //getting permission from user
+                val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+                val uri = Uri.fromParts("package", packageName, null)
+                startActivity(intent)
+            }
+        } else {
+            // for below android 11
+            val intent = Intent()
+            intent.type = "*/*"
+            intent.putExtra(Intent.EXTRA_AUTO_LAUNCH_SINGLE_CHOICE, true)
+            intent.action = Intent.ACTION_GET_CONTENT
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(permission.WRITE_EXTERNAL_STORAGE),
+                102
+            )
+        }
+    }
 
     private fun bindUIComponents() {
         listView = findViewById(R.id.textListView)
         editText = findViewById(R.id.textInput)
         saveButton = findViewById(R.id.saveButton)
-//        toolbar = findViewById(R.id.toolbar)
     }
 }
