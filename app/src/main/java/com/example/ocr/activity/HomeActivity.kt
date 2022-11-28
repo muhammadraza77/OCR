@@ -61,7 +61,7 @@ class HomeActivity : AppCompatActivity(),  ImageAnalysis.Analyzer {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-//        if (checkPermission()) {
+        if (checkPermission()) {
             //main logic or main code
             bindUIComponents()
 
@@ -77,9 +77,9 @@ class HomeActivity : AppCompatActivity(),  ImageAnalysis.Analyzer {
                 startActivity(Intent(applicationContext, ConfigureActivity::class.java));
             }
 
-//        } else {
-//            requestPermission();
-//        }
+        } else {
+            requestPermission();
+        }
 
     }
     override fun onResume() {

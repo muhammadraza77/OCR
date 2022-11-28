@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Build.VERSION
 import android.os.Bundle
 import android.os.Environment
+import android.provider.MediaStore
 import android.provider.Settings
 import android.view.KeyEvent
 import android.view.Menu
@@ -23,7 +24,9 @@ import com.example.ocr.constant.StorageKey
 import com.example.ocr.model.TextModel
 import com.example.ocr.utility.SharedPreferences
 import com.opencsv.CSVReader
+import java.io.File
 import java.io.FileReader
+import java.io.InputStreamReader
 
 
 class ConfigureActivity : AppCompatActivity() {
@@ -97,6 +100,19 @@ class ConfigureActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
+    private fun getRealPathFromURI(contentURI: Uri): String? {
+        val result: String?
+        val cursor = contentResolver.query(contentURI, null, null, null, null)
+        if (cursor == null) { // Source is Dropbox or other similar local file path
+            result = contentURI.path
+        } else {
+            cursor.moveToFirst()
+            val idx: Int = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA)
+            result = cursor.getString(idx)
+            cursor.close()
+        }
+        return result
+    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -104,8 +120,7 @@ class ConfigureActivity : AppCompatActivity() {
             ACTIVITY_CHOOSE_FILE -> {
                 if (resultCode == RESULT_OK){
                     try{
-                        val fileName = data?.data?.path?.split(":")?.get(1)
-                        val reader = CSVReader(FileReader(fileName))
+                        val reader = CSVReader(InputStreamReader(contentResolver.openInputStream(data!!.data!!)))
                         val myEntries: MutableList<Array<String>> = reader.readAll()
 
                         myEntries.forEach{

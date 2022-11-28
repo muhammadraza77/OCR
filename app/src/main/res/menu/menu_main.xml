@@ -4,12 +4,18 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
 xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/caseSwitchTitle"
+        app:showAsAction="always|withText"
+        android:title="Case Sensitive"
+        />
+    <item
         android:id="@+id/caseSwitch"
         app:actionLayout="@layout/switch_item"
         app:actionViewClass="androidx.appcompat.widget.SwitchCompat"
         app:showAsAction="always|withText"
         android:title="Case Sensitive"
-        />
+        >
+    </item>
 
     <item
     android:id="@+id/uploadCSV"
