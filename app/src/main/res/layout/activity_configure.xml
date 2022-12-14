@@ -6,50 +6,56 @@
     android:layout_height="match_parent"
     tools:context=".activity.ConfigureActivity">
 
-    <LinearLayout
-        android:id="@+id/verticalLL"
+    <FrameLayout
+        android:id="@+id/viewPlaceholder"
         android:layout_width="match_parent"
-        android:layout_height="fill_parent"
-        android:orientation="vertical"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_height="match_parent">
+    </FrameLayout>
+
+<!--    <LinearLayout-->
+<!--        android:id="@+id/verticalLL"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="fill_parent"-->
+<!--        android:orientation="vertical"-->
+<!--        app:layout_constraintTop_toTopOf="parent">-->
 
 
-        <ListView
-            android:id="@+id/textListView"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="90"></ListView>
+<!--        <ListView-->
+<!--            android:id="@+id/textListView"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="0dp"-->
+<!--            android:layout_weight="90"></ListView>-->
 
-        <LinearLayout
-            android:id="@+id/horizontalLL"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="10"
-            android:orientation="horizontal">
+<!--        <LinearLayout-->
+<!--            android:id="@+id/horizontalLL"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="0dp"-->
+<!--            android:layout_weight="10"-->
+<!--            android:orientation="horizontal">-->
 
-            <EditText
-                android:id="@+id/textInput"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:layout_weight="80"
-                android:hint="Enter Text Here"
-                android:singleLine="true"
-                android:text=""
-                android:textSize="20sp" />
+<!--            <EditText-->
+<!--                android:id="@+id/textInput"-->
+<!--                android:layout_width="0dp"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_margin="10dp"-->
+<!--                android:layout_weight="80"-->
+<!--                android:hint="Enter Text Here"-->
+<!--                android:singleLine="true"-->
+<!--                android:text=""-->
+<!--                android:textSize="20sp" />-->
 
-            <Button
-                android:id="@+id/saveButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:layout_weight="20"
-                android:text="Add" />
+<!--            <Button-->
+<!--                android:id="@+id/saveButton"-->
+<!--                android:layout_width="0dp"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_margin="10dp"-->
+<!--                android:layout_weight="20"-->
+<!--                android:text="Add" />-->
 
 
-        </LinearLayout>
+<!--        </LinearLayout>-->
 
-    </LinearLayout>
+<!--    </LinearLayout>-->
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -117,7 +117,7 @@ class HomeActivity : AppCompatActivity(),  ImageAnalysis.Analyzer {
     }
 
     private fun populateWordsFromDatabase() {
-        wordList = db!!.textDao()!!.getAll().map { it.text }.toSet()
+        wordList = db!!.textDao()!!.getAllText().map { it.text }.toSet()
     }
 
     @SuppressLint("RestrictedApi")

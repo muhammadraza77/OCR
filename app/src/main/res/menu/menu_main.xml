@@ -30,5 +30,10 @@ xmlns:app="http://schemas.android.com/apk/res-auto">
         app:showAsAction="never"
         android:title="Delete All">
     </item>
-
+    <item
+        android:id="@+id/addList"
+        android:icon="@drawable/common_google_signin_btn_text_light"
+        app:showAsAction="never"
+        android:title="Insert List">
+    </item>
 </menu>

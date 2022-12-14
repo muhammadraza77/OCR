@@ -9,6 +9,8 @@
         <entry key="app/src/main/res/layout/activity_home.xml" value="0.25" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.259375" />
         <entry key="app/src/main/res/layout/content_main.xml" value="0.259375" />
+        <entry key="app/src/main/res/layout/fragment_add_new_dialog.xml" value="0.25" />
+        <entry key="app/src/main/res/layout/fragment_document_list.xml" value="0.24427083333333333" />
         <entry key="app/src/main/res/layout/fragment_first.xml" value="0.259375" />
         <entry key="app/src/main/res/layout/fragment_second.xml" value="0.259375" />
         <entry key="app/src/main/res/layout/switch_item.xml" value="0.15520833333333334" />
