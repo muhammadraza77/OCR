@@ -2,10 +2,13 @@ package com.example.ocr.model
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import org.w3c.dom.Document
 
-@Entity(tableName = "text_table")
+@Entity(
+    tableName = "text_table"
+)
 data class TextModel(
     @PrimaryKey(autoGenerate = true)
     var id:Long,

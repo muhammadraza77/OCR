@@ -57,7 +57,6 @@ class AddNewDialog : DialogFragment() {
     }
 
     override fun onDestroyView() {
-        (parentFragmentManager.findFragmentByTag("document-list-fragment") as DocumentListFragment).updateListview()
         super.onDestroyView()
     }
 
@@ -74,10 +73,19 @@ class AddNewDialog : DialogFragment() {
         doneButton!!.setOnClickListener{
             if(isFileUploaded && isAudioUploaded){
                 //save to db
-                val documentId=db?.textDao()?.insert(documentForInsert!!)
-                textListForInsert.forEach{it.document_id=documentId!!}
-                db?.textDao()?.insertAll(textListForInsert)
+                try{
+                    val documentId=db?.textDao()?.insert(documentForInsert!!)
 
+                    textListForInsert.forEach{it.document_id=documentId!!}
+
+                    db?.textDao()?.insertAll(textListForInsert)
+
+                    (parentFragmentManager.findFragmentByTag("document-list-fragment") as DocumentListFragment)
+                        .updateListview(documentForInsert!!.title)
+
+                }catch (ex:Exception){
+                    Toast.makeText(requireContext(),"Title Already Exist",Toast.LENGTH_SHORT).show()
+                }
                 dismiss()
             }
         }

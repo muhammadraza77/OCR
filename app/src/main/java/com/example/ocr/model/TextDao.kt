@@ -18,6 +18,8 @@ interface TextDao {
     @Insert
     fun insertAll(model: List<TextModel>):List<Long>
 
+    @Query("SELECT * FROM document_table where title=:documentName")
+    fun getDocument(documentName:String):DocumentModel
 
     @Query("SELECT * FROM document_table")
     fun getAllDocuments(): List<DocumentModel>
@@ -27,13 +29,17 @@ interface TextDao {
 
     @Transaction
     @Query("SELECT * FROM text_table where document_id=:documentId")
-    fun getAllText(documentId:String): List<TextModel>
+    fun getAllText(documentId:Long): List<TextModel>
 
     @Transaction
     @Query("DELETE from text_table where document_id is :documentId and text like :text")
-    fun deleteText(documentId:String,text:String)
+    fun deleteText(documentId:Long,text:String)
 
     @Transaction
-    @Query("DELETE from document_table where id is :documentId")
-    fun deleteDocument(documentId:String)
+    @Query("DELETE from text_table where document_id is :documentId")
+    fun deleteText(documentId:Long)
+
+    @Transaction
+    @Query("DELETE from document_table where title is :documentTitle")
+    fun deleteDocument(documentTitle:String)
 }

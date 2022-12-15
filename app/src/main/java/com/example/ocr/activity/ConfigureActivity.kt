@@ -20,6 +20,7 @@ import com.example.ocr.AddNewDialog
 import com.example.ocr.DocumentListFragment
 import com.example.ocr.R
 import com.example.ocr.config.AppDatabase
+import com.example.ocr.config.DatabaseClient
 import com.example.ocr.constant.StorageKey
 import com.example.ocr.model.TextModel
 import com.example.ocr.utility.SharedPreferences
@@ -28,36 +29,19 @@ import java.io.InputStreamReader
 
 
 class ConfigureActivity : AppCompatActivity() {
-    private var toolbar: Toolbar?= null
-    private var listView: ListView? = null
-    private var editText: EditText? = null
-    private var saveButton:Button?=null
-    private var ACTIVITY_CHOOSE_FILE = 101
-    private var db : AppDatabase? = null
-    private var currentDataFromDb: MutableList<String>? = mutableListOf()
 
-    private var itemsAdapter: ArrayAdapter<String>? = null
+
+    private var db : AppDatabase? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_configure)
 
+        db = DatabaseClient.getInstance(applicationContext)!!.appDatabase
 
         val ft: FragmentTransaction = supportFragmentManager.beginTransaction()
         ft.replace(R.id.viewPlaceholder, DocumentListFragment(),"document-list-fragment")
         ft.commit()
-
-//        bindUIComponents()
-//
-
-//        editText!!.setImeActionLabel("Save", KeyEvent.KEYCODE_ENTER);
-//        saveButton!!.setOnClickListener{
-//            val text = editText!!.text.toString()
-//            insertWord(text)
-//            currentDataFromDb!!.add(text)
-//            itemsAdapter!!.notifyDataSetChanged()
-//            editText!!.setText("")
-//        }
 
     }
 
@@ -87,13 +71,12 @@ class ConfigureActivity : AppCompatActivity() {
                 return true
             }
             R.id.deleteAll ->{
-                deleteAllWord(currentDataFromDb)
-                currentDataFromDb?.clear()
-                itemsAdapter!!.notifyDataSetChanged()
+//                deleteAllWord(currentDataFromDb)
+//                currentDataFromDb?.clear()
+//                itemsAdapter!!.notifyDataSetChanged()
                 return true
             }
             R.id.addList ->{
-                Toast.makeText(this,"hello",Toast.LENGTH_SHORT).show()
                 val dialogFragment = AddNewDialog()
                 val ft = supportFragmentManager.beginTransaction()
                 dialogFragment.show(ft,"dialog")
@@ -104,16 +87,11 @@ class ConfigureActivity : AppCompatActivity() {
     }
 
 
-
-    private fun deleteWord(
-        currentDataFromDb: MutableList<String>,
-        pos: Int
-    ) {
-//        db!!.textDao()?.delete(currentDataFromDb[pos])
-    }
     private fun deleteAllWord(currentDataFromDb: MutableList<String>?) {
         currentDataFromDb?.forEachIndexed {index,element->
-//            db!!.textDao()?.delete(element)
+            val document=db!!.textDao()?.getDocument(element)
+            db!!.textDao()?.deleteText(document!!.id)
+            db!!.textDao()?.deleteDocument(element)
         }
     }
 
