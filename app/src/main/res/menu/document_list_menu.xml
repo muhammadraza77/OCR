@@ -18,13 +18,6 @@ xmlns:app="http://schemas.android.com/apk/res-auto">
     </item>
 
     <item
-    android:id="@+id/uploadCSV"
-    android:icon="@drawable/ic_upload"
-    app:showAsAction="never"
-    android:title="Upload CSV">
-    </item>
-
-    <item
         android:id="@+id/deleteAll"
         android:icon="@drawable/common_google_signin_btn_text_light"
         app:showAsAction="never"

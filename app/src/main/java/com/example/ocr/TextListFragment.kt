@@ -1,17 +1,23 @@
 package com.example.ocr
 
+import android.Manifest
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
-import android.view.KeyEvent
+import android.os.Environment
+import android.provider.Settings
+import android.view.*
 import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.fragment.app.FragmentTransaction
 import com.example.ocr.config.AppDatabase
 import com.example.ocr.config.DatabaseClient
 import com.example.ocr.model.DocumentModel
 import com.example.ocr.model.TextModel
+import com.opencsv.CSVReader
+import java.io.InputStreamReader
 
 
 class TextListFragment : Fragment() {
@@ -26,15 +32,21 @@ class TextListFragment : Fragment() {
     private var db : AppDatabase? = null
     private var document : DocumentModel? = null
 
+    private var ACTIVITY_CHOOSE_FILE = 101
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true);
+
         db = DatabaseClient.getInstance(requireActivity())!!.appDatabase
 
         val documentTitle=requireArguments().getString("documentName", "");
         document= db!!.textDao()?.getDocument(documentTitle)
-
     }
-
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.text_list_menu, menu)
+        true
+    }
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -60,6 +72,43 @@ class TextListFragment : Fragment() {
             editText!!.setText("")
         }
 
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.uploadCSV ->{
+                selectCSVFile1()
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        when(requestCode){
+            ACTIVITY_CHOOSE_FILE -> {
+                if (resultCode == AppCompatActivity.RESULT_OK){
+                    try{
+                        val reader = CSVReader(InputStreamReader(requireView().context.contentResolver.openInputStream(data!!.data!!)))
+                        val csvRows: MutableList<Array<String>> = reader.readAll()
+
+                        val textList = csvRows.map{
+                            TextModel(0,document!!.id,it[0])
+                        }
+
+                        db!!.textDao()!!.insertAll(textList)
+                        datasetString!!.addAll(textList.map { it.text })
+                        itemsAdapter!!.notifyDataSetChanged()
+                    }catch (ex:Exception){
+                        Toast.makeText(activity,ex.message, Toast.LENGTH_SHORT).show()
+                        throw ex
+                    }
+                }
+            }
+
+        }
     }
 
 
@@ -116,4 +165,36 @@ class TextListFragment : Fragment() {
         editText=view.findViewById(R.id.textInput)
         saveButton=view.findViewById(R.id.saveButton)
     }
+
+    private fun selectCSVFile1(){
+
+        //imp step
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (Environment.isExternalStorageManager()) {
+                //choosing csv file
+                val intent = Intent()
+                intent.type = "*/*"
+                intent.putExtra(Intent.EXTRA_AUTO_LAUNCH_SINGLE_CHOICE, true)
+                intent.action = Intent.ACTION_GET_CONTENT
+                startActivityForResult(Intent.createChooser(intent, "Select CSV File "), 101)
+            } else {
+                //getting permission from user
+                val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+//                val uri = Uri.fromParts("package", packageName, null)
+                startActivity(intent)
+            }
+        } else {
+            // for below android 11
+            val intent = Intent()
+            intent.type = "*/*"
+            intent.putExtra(Intent.EXTRA_AUTO_LAUNCH_SINGLE_CHOICE, true)
+            intent.action = Intent.ACTION_GET_CONTENT
+            ActivityCompat.requestPermissions(
+                requireActivity(),
+                arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                102
+            )
+        }
+    }
+
 }
