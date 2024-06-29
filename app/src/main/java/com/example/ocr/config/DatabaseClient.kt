@@ -6,7 +6,10 @@ import androidx.room.Room
 
 class DatabaseClient private constructor(private val mCtx: Context) {
     //our app database object
-    val appDatabase: AppDatabase =  Room.databaseBuilder(mCtx, AppDatabase::class.java, "textDb").allowMainThreadQueries().build()
+    val appDatabase: AppDatabase =  Room
+        .databaseBuilder(mCtx, AppDatabase::class.java, "textDb")
+        .fallbackToDestructiveMigration()
+        .allowMainThreadQueries().build()
 
     companion object {
         private var mInstance: DatabaseClient? = null

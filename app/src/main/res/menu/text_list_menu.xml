@@ -9,4 +9,16 @@ xmlns:app="http://schemas.android.com/apk/res-auto">
     android:title="Upload CSV">
     </item>
 
+    <item
+        android:id="@+id/playAudio"
+        android:icon="@drawable/ic_upload"
+        app:showAsAction="never"
+        android:title="Play Audio">
+    </item>
+    <item
+        android:id="@+id/changeAudio"
+        android:icon="@drawable/ic_upload"
+        app:showAsAction="never"
+        android:title="Change Audio">
+    </item>
 </menu>

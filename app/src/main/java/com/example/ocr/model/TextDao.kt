@@ -1,10 +1,8 @@
 package com.example.ocr.model
 
 import androidx.lifecycle.LiveData
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.Query
-import androidx.room.Transaction
+import androidx.room.*
+import org.w3c.dom.Document
 
 
 @androidx.room.Dao
@@ -26,6 +24,9 @@ interface TextDao {
 
     @Query("SELECT * FROM text_table")
     fun getAllText(): List<TextModel>
+
+    @Update
+    fun updateDocument(document: DocumentModel)
 
     @Transaction
     @Query("SELECT * FROM text_table where document_id=:documentId")

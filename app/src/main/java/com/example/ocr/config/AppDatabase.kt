@@ -7,7 +7,7 @@ import com.example.ocr.model.TextDao
 import com.example.ocr.model.TextModel
 
 
-@Database(entities = [TextModel::class,DocumentModel::class], version = 1)
+@Database(entities = [TextModel::class,DocumentModel::class], version = 2)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun textDao(): TextDao?
 }

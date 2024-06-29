@@ -9,8 +9,7 @@ import android.app.AlertDialog
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.media.AudioManager
-import android.media.ToneGenerator
+import android.location.Location
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
@@ -31,6 +30,7 @@ import com.example.ocr.R
 import com.example.ocr.config.AppDatabase
 import com.example.ocr.config.DatabaseClient
 import com.example.ocr.constant.StorageKey
+import com.example.ocr.model.TextModel
 import com.example.ocr.utility.GraphicOverlay
 import com.example.ocr.utility.SharedPreferences
 import com.google.common.util.concurrent.ListenableFuture
@@ -38,6 +38,7 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.TextRecognizer
+import java.io.File
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor
 
@@ -52,12 +53,19 @@ class HomeActivity : AppCompatActivity(),  ImageAnalysis.Analyzer {
 
 
     var db : AppDatabase? = null
-    var wordList: Set<String> = emptySet()
+    var wordList: Set<TextModel> = emptySet()
+    var documentIdAudioIdMapping = mapOf<Long,String>()
     var isCaseSensitive: Boolean? = null
     var sharedPreferences: SharedPreferences? = null
 
+    var audioManager = com.example.ocr.utility.AudioManager()
+
     override fun onCreate(savedInstanceState: Bundle?) {
 
+        val results = FloatArray(1)
+        Location.distanceBetween(24.8540032, 67.1573424, 24.8531611, 67.1532494,results)
+        println("distance check")
+        println(results[0])
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -117,7 +125,8 @@ class HomeActivity : AppCompatActivity(),  ImageAnalysis.Analyzer {
     }
 
     private fun populateWordsFromDatabase() {
-        wordList = db!!.textDao()!!.getAllText().map { it.text }.toSet()
+        documentIdAudioIdMapping = db!!.textDao()?.getAllDocuments()!!.associate { it.id to it.audioId }
+        wordList = db!!.textDao()!!.getAllText().toSet()
     }
 
     @SuppressLint("RestrictedApi")
@@ -149,7 +158,6 @@ class HomeActivity : AppCompatActivity(),  ImageAnalysis.Analyzer {
 
     @SuppressLint("UnsafeOptInUsageError")
     private fun runTextRecognition(imageFrameProxy: ImageProxy) {
-        // Replace with code from the codelab to run text recognition.
         val image: InputImage = InputImage.fromMediaImage(imageFrameProxy.image!!, imageFrameProxy.imageInfo.rotationDegrees)
         val recognizer: TextRecognizer = TextRecognition.getClient()
 
@@ -167,7 +175,6 @@ class HomeActivity : AppCompatActivity(),  ImageAnalysis.Analyzer {
         runTextRecognition(image)
 
     }
-
     private fun processTextRecognitionResult(texts: Text) {
 
         val blocks = texts.textBlocks
@@ -181,18 +188,20 @@ class HomeActivity : AppCompatActivity(),  ImageAnalysis.Analyzer {
 
         val detectedText = if(isCaseSensitive!!) checkTextInDbCaseSensitive(texts.text) else checkTextInDbCaseFree(texts.text)
         if(detectedText.isNotEmpty()){
-            detectedTextView!!.text = detectedText.joinToString(separator = "\n")
-            val toneGen1 = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
-            toneGen1.startTone(ToneGenerator.TONE_CDMA_PIP, 150)
+            detectedTextView!!.text = detectedText.map { it.text }.joinToString(separator = "\n")
+            val firstTextModel = detectedText.iterator().next()
+            val audioId = documentIdAudioIdMapping[firstTextModel.document_id]
+            val audioFileName = cacheDir.path+ File.separator + audioId
+            audioManager.playAudioFile(applicationContext,audioFileName!!)
         }
     }
 
-    private fun checkTextInDbCaseFree(text: String):Set<String> = wordList.filter {
-        it.uppercase() in text.uppercase()
+    private fun checkTextInDbCaseFree(text: String):Set<TextModel> = wordList.filter {
+        it.text.uppercase() in text.uppercase()
     }.toSet()
 
-    private fun checkTextInDbCaseSensitive(text: String):Set<String> = wordList.filter {
-        it in text
+    private fun checkTextInDbCaseSensitive(text: String):Set<TextModel> = wordList.filter {
+        it.text in text
     }.toSet()
 
 
@@ -244,3 +253,6 @@ class HomeActivity : AppCompatActivity(),  ImageAnalysis.Analyzer {
         }
     }
 }
+
+
+

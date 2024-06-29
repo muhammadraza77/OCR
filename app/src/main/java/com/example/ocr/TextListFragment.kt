@@ -1,7 +1,10 @@
 package com.example.ocr
 
 import android.Manifest
+import android.app.Activity
+import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
@@ -16,8 +19,10 @@ import com.example.ocr.config.AppDatabase
 import com.example.ocr.config.DatabaseClient
 import com.example.ocr.model.DocumentModel
 import com.example.ocr.model.TextModel
+import com.example.ocr.utility.AudioManager
 import com.opencsv.CSVReader
-import java.io.InputStreamReader
+import java.io.*
+import java.util.*
 
 
 class TextListFragment : Fragment() {
@@ -33,6 +38,8 @@ class TextListFragment : Fragment() {
     private var document : DocumentModel? = null
 
     private var ACTIVITY_CHOOSE_FILE = 101
+    private val PICK_FILE = 99
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,6 +87,18 @@ class TextListFragment : Fragment() {
                 selectCSVFile1()
                 return true
             }
+            R.id.playAudio ->{
+                val audioManager = AudioManager()
+                val directory: File = requireActivity().cacheDir
+                val file =  directory.path + File.separator + document!!.audioId
+                audioManager.playAudioFile(requireContext(),file)
+            }
+            R.id.changeAudio -> {
+                val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+                intent.addCategory(Intent.CATEGORY_OPENABLE)
+                intent.type = "audio/*"
+                startActivityForResult(intent, PICK_FILE)
+            }
         }
         return super.onOptionsItemSelected(item)
     }
@@ -104,6 +123,17 @@ class TextListFragment : Fragment() {
                     }catch (ex:Exception){
                         Toast.makeText(activity,ex.message, Toast.LENGTH_SHORT).show()
                         throw ex
+                    }
+                }
+            }
+            PICK_FILE->{
+                if (resultCode == Activity.RESULT_OK){
+                    if (data != null){
+
+                        val audio = saveToFile( requireContext(), data.data!!)
+                        document!!.audioId =audio
+                        db?.textDao()?.updateDocument(document!!)
+
                     }
                 }
             }
@@ -194,6 +224,33 @@ class TextListFragment : Fragment() {
                 arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
                 102
             )
+        }
+    }
+
+    fun saveToFile(context: Context, uri: Uri):String{
+
+        val audioId = UUID.randomUUID().toString()
+        val fileType = ".mp3"
+
+        var bis: BufferedInputStream? = null
+        var bos: BufferedOutputStream? = null
+        val directory: File = requireActivity().cacheDir
+        val destinationFilename = directory.path+File.separator+audioId+fileType
+        try {
+            bis = BufferedInputStream(context.getContentResolver().openInputStream(uri))
+            bos = BufferedOutputStream(FileOutputStream(destinationFilename, false))
+            val buffer = ByteArray(1024)
+            bis.read(buffer)
+            do {
+                bos.write(buffer)
+            } while (bis.read(buffer) !== -1)
+            bis?.close()
+            bos?.close()
+            return audioId+fileType
+        }catch (ioe: IOException) {
+            bis?.close()
+            bos?.close()
+            throw ioe
         }
     }
 
